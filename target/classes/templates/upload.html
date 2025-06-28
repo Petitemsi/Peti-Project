@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Item - PETI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+            color: #6c5ce7 !important;
+        }
+        .upload-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #6c5ce7;
+            box-shadow: 0 0 0 0.2rem rgba(108, 92, 231, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="/wardrobe">
+                <i class="fas fa-tshirt me-2"></i>PETI
+            </a>
+            <div class="navbar-nav me-auto">
+                <a class="nav-link" href="/wardrobe">Wardrobe</a>
+                <a class="nav-link active" href="/wardrobe/upload">Add Item</a>
+                <a class="nav-link" href="/outfits">Outfits</a>
+                <a class="nav-link" href="/reports">Reports</a>
+            </div>
+            <div class="navbar-nav">
+                <span class="nav-link">
+                    <i class="fas fa-user me-1"></i>
+                    <span th:text="${#authentication.principal.username}">User</span>
+                </span>
+                <a class="nav-link" href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="upload-card p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="fw-bold text-dark">
+                            <i class="fas fa-plus-circle me-2 text-primary"></i>Add New Item
+                        </h2>
+                        <p class="text-muted">Add a new clothing item to your wardrobe</p>
+                    </div>
+
+                    <form th:action="@{/wardrobe/upload}" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Item Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category *</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select category</option>
+                                <option value="SHIRT">Shirt</option>
+                                <option value="PANTS">Pants</option>
+                                <option value="DRESS">Dress</option>
+                                <option value="SKIRT">Skirt</option>
+                                <option value="JACKET">Jacket</option>
+                                <option value="COAT">Coat</option>
+                                <option value="SHOES">Shoes</option>
+                                <option value="BAG">Bag</option>
+                                <option value="ACCESSORY">Accessory</option>
+                                <option value="UNDERWEAR">Underwear</option>
+                                <option value="SOCKS">Socks</option>
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="color" class="form-label">Color</label>
+                                    <select class="form-select" id="color" name="color">
+                                        <option value="">Select color</option>
+                                        <option value="BLACK">Black</option>
+                                        <option value="WHITE">White</option>
+                                        <option value="RED">Red</option>
+                                        <option value="BLUE">Blue</option>
+                                        <option value="GREEN">Green</option>
+                                        <option value="YELLOW">Yellow</option>
+                                        <option value="PURPLE">Purple</option>
+                                        <option value="PINK">Pink</option>
+                                        <option value="ORANGE">Orange</option>
+                                        <option value="BROWN">Brown</option>
+                                        <option value="GRAY">Gray</option>
+                                        <option value="NAVY">Navy</option>
+                                        <option value="BEIGE">Beige</option>
+                                        <option value="MULTI">Multi</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="season" class="form-label">Season</label>
+                                    <select class="form-select" id="season" name="season">
+                                        <option value="">Select season</option>
+                                        <option value="SPRING">Spring</option>
+                                        <option value="SUMMER">Summer</option>
+                                        <option value="FALL">Fall</option>
+                                        <option value="WINTER">Winter</option>
+                                        <option value="ALL_SEASON">All Season</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="occasion" class="form-label">Occasion</label>
+                            <select class="form-select" id="occasion" name="occasion">
+                                <option value="">Select occasion</option>
+                                <option value="CASUAL">Casual</option>
+                                <option value="BUSINESS">Business</option>
+                                <option value="FORMAL">Formal</option>
+                                <option value="SPORT">Sport</option>
+                                <option value="PARTY">Party</option>
+                                <option value="BEACH">Beach</option>
+                                <option value="HIKING">Hiking</option>
+                                <option value="SLEEP">Sleep</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" 
+                                      placeholder="Describe your item (optional)"></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="image" class="form-label">Image</label>
+                            <input type="file" class="form-control" id="image" name="image" 
+                                   accept="image/*">
+                            <div class="form-text">Upload an image of your clothing item (optional)</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Add Item
+                            </button>
+                            <a href="/wardrobe" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Wardrobe
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
