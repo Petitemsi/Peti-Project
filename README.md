@@ -68,9 +68,6 @@ src/
 
 This project is maintained by Petitemsi. Feel free to submit issues and enhancement requests!
 
-## License
-
-This project is licensed under the MIT License.
 
 ## 🎯 Features
 
@@ -254,14 +251,6 @@ src/main/java/com/peti/
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions, please open an issue in the repository or contact the development team.
 
 ---
 
