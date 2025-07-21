@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Analytics Overview</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/adminDashboard.css">
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container">
+    <a class="navbar-brand" href="/dashboard">
+      <i class="fas fa-tshirt me-2"></i>PETI
+    </a>
+    <div class="navbar-nav me-auto">
+      <!-- Admin-only items with admin-link class -->
+      <a class="nav-link admin-link" href="/api/page/adminDashboard">
+        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+      </a>
+      <a class="nav-link" href="/api/page/dashboard">
+        <i class="fa fa-shopping-bag me-1"></i>Wardrobe
+      </a>
+      <a class="nav-link admin-link" th:href="@{/api/page/users}">
+        <i class="fas fa-users-cog me-1"></i>User Management
+      </a>
+      <a class="nav-link admin-link" href="/api/page/category">
+        <i class="fas fa-tags me-1"></i>Category
+      </a>
+      <a class="nav-link" href="/api/page/addItem">
+        <i class="fas fa-tshirt me-1"></i>Clothing Item
+      </a>
+      <!-- End of admin-only items -->
+<!--      <a class="nav-link" href="/api/page/outfits">-->
+<!--        <i class="fa fa-black-tie me-1"></i>Outfits-->
+<!--      </a>-->
+
+      <a class="nav-link" href="/api/page/analytics">
+        <i class="fas fa-chart-bar me-1"></i>Analytics
+      </a>
+    </div>
+    <ul class="navbar-nav">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+          <i class="fas fa-user me-1"></i>
+          <span id="usernameDisplay"></span>
+        </a>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="/api/page/profile"> <i class="fas fa-user me-2"></i>Profile</a></li>
+          <li> <a class="dropdown-item" href="/api/page/reports">
+            <i class="fas fa-flag me-2"></i>Reports
+          </a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" onclick="logout()"> <i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</nav>
+<script src="/js/navbar.js"></script>
+
+<!-- Main Content -->
+<div class="container-fluid mt-4">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="container">
+      <h1 class="display-4">Admin Dashboard</h1>
+      <p class="lead">Track usage trends and system statistics</p>
+    </div>
+  </div>
+
+  <!-- Stats Cards Row -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="stats-card">
+        <div class="stats-icon">
+          <i class="fas fa-tshirt"></i>
+        </div>
+        <div class="stats-number" id="totalItemsCount">0</div>
+        <div class="stats-label">Total Items</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stats-card">
+        <div class="stats-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="stats-number" id="totalUsersCount">0</div>
+        <div class="stats-label">Active Users</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stats-card">
+        <div class="stats-icon">
+          <i class="fas fa-calendar-week"></i>
+        </div>
+        <div class="stats-number" id="outfitsThisWeekCount">0</div>
+        <div class="stats-label">Outfits This Week</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stats-card">
+        <div class="stats-icon">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="stats-number">92%</div>
+        <div class="stats-label">User Satisfaction</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Row -->
+  <div class="row">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+      <!-- Item Usage Trends Card -->
+      <div class="card mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Item Usage Trends</h5>
+        </div>
+        <div class="card-body">
+          <div class="chart-container" style="position: relative; height: 300px;">
+            <canvas id="itemUsageChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Peak Usage Card -->
+      <div class="card mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Peak Usage Periods</h5>
+        </div>
+        <div class="card-body">
+          <div class="chart-container" style="position: relative; height: 300px;">
+            <canvas id="peakUsageChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+      <!-- Most Used Categories -->
+      <div class="card mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Most Used Categories</h5>
+        </div>
+        <div class="card-body">
+          <ul id="mostUsedCategoriesList" class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Loading...</span>
+              <span class="badge bg-primary rounded-pill">0</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Least Used Categories -->
+      <div class="card mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Least Used Categories</h5>
+        </div>
+        <div class="card-body">
+          <ul id="leastUsedCategoriesList" class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Loading...</span>
+              <span class="badge bg-danger rounded-pill">0</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Distribution -->
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Category Distribution</h5>
+        </div>
+        <div class="card-body">
+          <div class="chart-container" style="position: relative; height: 300px;">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Seasonal Usage</h5>
+        </div>
+        <div class="card-body">
+          <div class="chart-container" style="position: relative; height: 300px;">
+            <canvas id="seasonalChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Item Usage Chart
+    const itemUsageCtx = document.getElementById('itemUsageChart').getContext('2d');
+    window.itemUsageChart = new Chart(itemUsageCtx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Items Used',
+          data: [],
+          borderColor: 'rgba(108, 92, 231, 1)',
+          backgroundColor: 'rgba(108, 92, 231, 0.1)',
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    // Peak Usage Chart
+    const peakUsageCtx = document.getElementById('peakUsageChart').getContext('2d');
+    window.peakUsageChart = new Chart(peakUsageCtx, {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Usage Count',
+          data: [],
+          backgroundColor: 'rgba(108, 92, 231, 0.7)',
+          borderColor: 'rgba(108, 92, 231, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    // Category Distribution Chart
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    window.categoryChart = new Chart(categoryCtx, {
+      type: 'doughnut',
+      data: {
+        labels: [],
+        datasets: [{
+          data: [],
+          backgroundColor: [],
+          borderColor: [],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+          }
+        }
+      }
+    });
+
+    // Seasonal Usage Chart
+    const seasonalCtx = document.getElementById('seasonalChart').getContext('2d');
+    window.seasonalChart = new Chart(seasonalCtx, {
+      type: 'radar',
+      data: {
+        labels: ['Loading...'],
+        datasets: [{
+          label: 'Seasonal Usage',
+          data: [0],
+          backgroundColor: 'rgba(108, 92, 231, 0.2)',
+          borderColor: 'rgba(108, 92, 231, 1)',
+          pointBackgroundColor: 'rgba(108, 92, 231, 1)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgba(108, 92, 231, 1)',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            angleLines: {
+              display: true
+            },
+            suggestedMin: 0,
+            suggestedMax: 100
+          }
+        }
+      }
+    });
+  });
+</script>
+<script src="/js/logout.js"></script>
+<script src="/js/user.js"></script>
+<script src="/js/adminDashboard.js"></script>
+</body>
+</html>

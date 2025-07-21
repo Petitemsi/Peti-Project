@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - PETI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .login-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .brand-logo {
+            font-size: 3rem;
+            color: #6c5ce7;
+        }
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+        }
+        .form-control:focus {
+            border-color: #6c5ce7;
+            box-shadow: 0 0 0 0.2rem rgba(108, 92, 231, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+        .btn-primary:disabled {
+            opacity: 0.7;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="login-card p-5">
+                    <div class="text-center mb-4">
+                        <div class="brand-logo mb-3">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <h2 class="fw-bold text-dark">Welcome to PETI</h2>
+                        <p class="text-muted">Your Smart Virtual Wardrobe</p>
+                    </div>
+
+                <div th:if="${param.registered}" class="alert alert-success" role="alert">
+                    Registration successful! Please login.
+                </div>
+
+                <div th:if="${error}" class="alert alert-danger" role="alert">
+                    <span th:text="${error}">Invalid credentials</span>
+                </div>
+
+                <div id="errorAlert" class="alert alert-danger" role="alert" style="display: none;">
+                    <span id="errorMessage"></span>
+                </div>
+
+                <div id="successAlert" class="alert alert-success" role="alert" style="display: none;">
+                    <span id="successMessage"></span>
+                </div>
+
+                <div th:if="${param.logout}" class="alert alert-info" role="alert">
+                    You have been logged out.
+                </div>
+
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary" id="loginBtn">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </button>
+                    </div>
+                    <!-- Add this just below the login button in login.html -->
+                    <div class="text-center mt-3">
+                        <a href="/public/forgotPassword" class="text-decoration-none">
+                            <i class="fas fa-key me-1"></i>Forgot Password?
+                        </a>
+                    </div>
+                </form>
+
+                <div class="text-center">
+                    <p class="text-muted mb-0">Don't have an account?</p>
+                    <a href="/public/register" class="text-decoration-none">
+                        <i class="fas fa-user-plus me-1"></i>Register here
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function handleLogin(event) {
+        event.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const errorAlert = document.getElementById('errorAlert');
+        const errorMessage = document.getElementById('errorMessage');
+        const successAlert = document.getElementById('successAlert');
+        const successMessage = document.getElementById('successMessage');
+        const loginBtn = document.getElementById('loginBtn');
+
+        // Debug: Check if elements exist
+        console.log('Elements found:', {
+            errorAlert: !!errorAlert,
+            errorMessage: !!errorMessage,
+            successAlert: !!successAlert,
+            successMessage: !!successMessage,
+            loginBtn: !!loginBtn
+        });
+
+        // Disable the login button to prevent multiple submissions
+        if (loginBtn) {
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Logging in...';
+        }
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Login successful:', data);
+                const userRole=getUserRole();
+                // Hide error message and show success
+                if (errorAlert) errorAlert.style.display = 'none';
+                if (successAlert) {
+                    successAlert.style.display = 'block';
+                    if (successMessage) {
+                        successMessage.textContent = 'Login successful! Redirecting...';
+                    }
+                }
+
+                // Store JWT token
+                if (data.jwtToken) {
+                    localStorage.setItem('jwtToken', data.jwtToken);
+                }
+
+                // Redirect to dashboard after a short delay
+                console.log('Redirecting to dashboard...');
+                if( userRole === 'ADMIN') {
+                    setTimeout(() => {
+                    window.location.href = '/api/page/adminDashboard';
+                    }, 2000);
+                }
+                else{
+                    setTimeout(() => {
+                        window.location.href = '/api/page/dashboard';
+                    }, 2000); // Redirect after 2 seconds                } else {
+                }
+
+
+            } else {
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+                }
+                console.log('Login error:', errorData);
+
+                // Show error message
+                if (errorAlert) {
+                    errorAlert.style.display = 'block';
+                    if (errorMessage) {
+                        errorMessage.textContent = errorData.message || 'Invalid credentials';
+                    }
+                }
+                if (successAlert) successAlert.style.display = 'none';
+
+                // Re-enable the login button
+                if (loginBtn) {
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Login';
+                }
+            }
+
+        } catch (error) {
+            console.error('Network error:', error);
+
+            // Show network error
+            if (errorAlert) {
+                errorAlert.style.display = 'block';
+                if (errorMessage) {
+                    errorMessage.textContent = 'Network error. Please check your connection and try again.';
+                }
+            }
+            if (successAlert) successAlert.style.display = 'none';
+
+            // Re-enable the login button
+            if (loginBtn) {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Login';
+            }
+        }
+    }
+</script>
+    <script src="/js/user.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outfits - PETI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+        <a class="navbar-brand" href="/dashboard">
+            <i class="fas fa-tshirt me-2"></i>PETI
+        </a>
+        <div class="navbar-nav me-auto">
+            <!-- Admin-only items with admin-link class -->
+            <a class="nav-link admin-link" href="/api/page/adminDashboard">
+                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+            </a>
+            <a class="nav-link" href="/api/page/dashboard">
+                <i class="fa fa-shopping-bag me-1"></i>Wardrobe
+            </a>
+            <a class="nav-link admin-link" th:href="@{/api/page/users}">
+                <i class="fas fa-users-cog me-1"></i>User Management
+            </a>
+            <a class="nav-link admin-link" href="/api/page/category">
+                <i class="fas fa-tags me-1"></i>Category
+            </a>
+            <a class="nav-link" href="/api/page/addItem">
+                <i class="fas fa-tshirt me-1"></i>Clothing Item
+            </a>
+            <!-- End of admin-only items -->
+<!--            <a class="nav-link" href="/api/page/outfits">-->
+<!--                <i class="fa fa-black-tie me-1"></i>Outfits-->
+<!--            </a>-->
+
+            <a class="nav-link" href="/api/page/analytics">
+                <i class="fas fa-chart-bar me-1"></i>Analytics
+            </a>
+        </div>
+        <ul class="navbar-nav">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-user me-1"></i>
+                    <span id="usernameDisplay"></span>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/api/page/profile"> <i class="fas fa-user me-2"></i>Profile</a></li>
+                    <li> <a class="dropdown-item" href="/api/page/reports">
+                        <i class="fas fa-flag me-2"></i>Reports
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" onclick="logout()"> <i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</nav>
+<script src="/js/navbar.js"></script>
+<div class="page-header container-fluid mt-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4">
+                    <i class="fas fa-black-tie me-3"></i>Outfits Collection
+                </h1>
+                <p class="lead">Manage your outfits and combinations</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addOutfitModal">
+                    <i class="fas fa-plus me-2"></i>Add Outfit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<main class="container">
+    <!-- Toast Notifications -->
+    <div class="toast-container">
+        <div id="successToast" class="toast toast-success" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-body d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-check-circle me-2"></i><span id="successMessage"></span></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        <div id="errorToast" class="toast toast-error" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-body d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-exclamation-circle me-2"></i><span id="errorMessageToast"></span></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="search-bar">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control border-0" placeholder="Search outfits...">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <select class="form-select form-select-sm" id="filterOccasion">
+                            <option value="">All Occasions</option>
+                            <option value="CASUAL">Casual</option>
+                            <option value="BUSINESS">Business</option>
+                            <option value="FORMAL">Formal</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select form-select-sm" id="filterSeason">
+                            <option value="">All Seasons</option>
+                            <option value="SPRING">Spring</option>
+                            <option value="SUMMER">Summer</option>
+                            <option value="FALL">Fall</option>
+                            <option value="WINTER">Winter</option>
+                            <option value="ALL_SEASON">All Season</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-primary btn-sm w-100" id="applyFiltersBtn">
+                            <i class="fas fa-filter me-1"></i> Apply
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Outfits Table -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Occasion</th>
+                    <th>Season</th>
+                    <th>Items</th>
+                    <th>Wear Count</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="outfitsTableBody">
+                <!-- Outfits will be loaded dynamically -->
+                <tr>
+                    <td colspan="8" class="text-center py-4">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-2" style="color: var(--primary-light);"></i>
+                        <p class="mb-0">Loading outfits...</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- Add Outfit Modal -->
+<div class="modal fade" id="addOutfitModal" tabindex="-1" aria-labelledby="addOutfitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addOutfitModalLabel">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Outfit
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="error-message" id="errorMessage"></div>
+                <div class="loading-spinner" id="loadingSpinner">
+                    <i class="fas fa-spinner fa-spin"></i> Loading clothing items...
+                </div>
+                <form id="addOutfitForm">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="outfitName" class="form-label">Outfit Name *</label>
+                                <input type="text" class="form-control" id="outfitName" name="name" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="outfitOccasion" class="form-label">Occasion</label>
+                                <select class="form-select" id="outfitOccasion" name="occasion">
+                                    <option value="">Select occasion</option>
+                                    <option value="CASUAL">Casual</option>
+                                    <option value="BUSINESS">Business</option>
+                                    <option value="FORMAL">Formal</option>
+                                    <option value="SPORT">Sport</option>
+                                    <option value="PARTY">Party</option>
+                                    <option value="BEACH">Beach</option>
+                                    <option value="HIKING">Hiking</option>
+                                    <option value="SLEEP">Sleep</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="outfitSeason" class="form-label">Season</label>
+                                <select class="form-select" id="outfitSeason" name="season">
+                                    <option value="">Select season</option>
+                                    <option value="SPRING">Spring</option>
+                                    <option value="SUMMER">Summer</option>
+                                    <option value="FALL">Fall</option>
+                                    <option value="WINTER">Winter</option>
+                                    <option value="ALL_SEASON">All Season</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Select Clothing Items *</label>
+                        <div class="dropdown-container">
+                            <div id="outfitItemsDropdown" class="dropdown-check-list">
+                                <span class="anchor">Select items...</span>
+                                <ul class="items" id="outfitItemsList">
+                                    <!-- Items will be populated via API -->
+                                </ul>
+                                <div class="selected-items" id="outfitSelectedItems"></div>
+                                <input type="hidden" id="outfitItems" name="items">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="outfitDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="outfitDescription" name="description" rows="3"
+                                  placeholder="Describe your outfit (optional)"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="submitOutfitButton">
+                    <i class="fas fa-save me-2"></i>Add Outfit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Outfit Modal -->
+<div class="modal fade" id="editOutfitModal" tabindex="-1" aria-labelledby="editOutfitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editOutfitModalLabel">
+                    <i class="fas fa-edit me-2"></i>Edit Outfit
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="error-message" id="editErrorMessage"></div>
+                <div class="loading-spinner" id="editLoadingSpinner" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i> Saving changes...
+                </div>
+                <form id="editOutfitForm">
+                    <input type="hidden" id="editOutfitId" name="id">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="editOutfitName" class="form-label">Outfit Name *</label>
+                                <input type="text" class="form-control" id="editOutfitName" name="name" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editOutfitOccasion" class="form-label">Occasion</label>
+                                <select class="form-select" id="editOutfitOccasion" name="occasion">
+                                    <option value="">Select occasion</option>
+                                    <option value="CASUAL">Casual</option>
+                                    <option value="BUSINESS">Business</option>
+                                    <option value="FORMAL">Formal</option>
+                                    <option value="SPORT">Sport</option>
+                                    <option value="PARTY">Party</option>
+                                    <option value="BEACH">Beach</option>
+                                    <option value="HIKING">Hiking</option>
+                                    <option value="SLEEP">Sleep</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editOutfitSeason" class="form-label">Season</label>
+                                <select class="form-select" id="editOutfitSeason" name="season">
+                                    <option value="">Select season</option>
+                                    <option value="SPRING">Spring</option>
+                                    <option value="SUMMER">Summer</option>
+                                    <option value="FALL">Fall</option>
+                                    <option value="WINTER">Winter</option>
+                                    <option value="ALL_SEASON">All Season</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Select Clothing Items *</label>
+                        <div class="dropdown-container">
+                            <div id="editOutfitItemsDropdown" class="dropdown-check-list">
+                                <span class="anchor">Select items...</span>
+                                <ul class="items" id="editOutfitItemsList">
+                                    <!-- Items will be populated via API -->
+                                </ul>
+                                <div class="selected-items" id="editOutfitSelectedItems"></div>
+                                <input type="hidden" id="editOutfitItems" name="items">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editOutfitDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="editOutfitDescription" name="description" rows="3"
+                                  placeholder="Describe your outfit (optional)"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="editSubmitButton">
+                    <i class="fas fa-save me-2"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Outfit Items Modal -->
+<div class="modal fade" id="viewOutfitItemsModal" tabindex="-1" aria-labelledby="viewOutfitItemsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewOutfitItemsModalLabel">
+                    <i class="fas fa-tshirt me-2"></i>Outfit Items
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="outfit-items-container" id="outfitItemsContainer">
+                    <!-- Items will be loaded dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteConfirmationModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this outfit? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton">
+                    <i class="fas fa-trash me-2"></i>Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Initialize toast notifications
+    const successToast = new bootstrap.Toast(document.getElementById('successToast'));
+    const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
+
+    // Function to show success message
+    function showSuccessMessage(message) {
+        document.getElementById('successMessage').textContent = message;
+        successToast.show();
+    }
+
+    // Function to show error message
+    function showErrorMessage(message) {
+        document.getElementById('errorMessageToast').textContent = message;
+        errorToast.show();
+    }
+
+    // Global variables
+    let outfitToDelete = null;
+    let clothingItems = [];
+
+    // Function to initialize dropdown checklists
+    function initializeDropdownChecklists() {
+        // For add outfit modal
+        const addDropdown = document.querySelector('#outfitItemsDropdown');
+        const addAnchor = addDropdown.querySelector('.anchor');
+        const addItems = addDropdown.querySelector('.items');
+
+        addAnchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            addItems.style.display = addItems.style.display === 'block' ? 'none' : 'block';
+            addAnchor.classList.toggle('active');
+        });
+
+        // For edit outfit modal
+        const editDropdown = document.querySelector('#editOutfitItemsDropdown');
+        const editAnchor = editDropdown.querySelector('.anchor');
+        const editItems = editDropdown.querySelector('.items');
+
+        editAnchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            editItems.style.display = editItems.style.display === 'block' ? 'none' : 'block';
+            editAnchor.classList.toggle('active');
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!addDropdown.contains(e.target)) {
+                addItems.style.display = 'none';
+                addAnchor.classList.remove('active');
+            }
+            if (!editDropdown.contains(e.target)) {
+                editItems.style.display = 'none';
+                editAnchor.classList.remove('active');
+            }
+        });
+    }
+
+    // Function to update selected items display
+    function updateSelectedItemsDisplay(selectedIds, itemsListId, displayId, hiddenInputId) {
+        const selectedItems = [];
+        const checkboxes = document.querySelectorAll(`#${itemsListId} input[type="checkbox"]:checked`);
+
+        checkboxes.forEach(checkbox => {
+            const itemId = checkbox.value;
+            const item = clothingItems.find(item => item.id == itemId);
+            if (item) {
+                selectedItems.push(item);
+            }
+        });
+
+        // Update hidden input with comma-separated IDs
+        document.getElementById(hiddenInputId).value = selectedItems.map(item => item.id).join(',');
+
+        // Update display of selected items
+        const displayContainer = document.getElementById(displayId);
+        displayContainer.innerHTML = '';
+
+        if (selectedItems.length === 0) {
+            displayContainer.innerHTML = '<span class="text-muted">No items selected</span>';
+            return;
+        }
+
+        selectedItems.forEach(item => {
+            const badge = document.createElement('span');
+            badge.className = 'selected-item';
+            badge.textContent = `${item.name} (${item.category.name})`;
+            displayContainer.appendChild(badge);
+        });
+    }
+
+    // Function to fetch clothing items for dropdown
+    async function fetchClothingItemsForDropdown() {
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const errorMessage = document.getElementById('errorMessage');
+        const itemsList = document.getElementById('outfitItemsList');
+        const editItemsList = document.getElementById('editOutfitItemsList');
+
+        try {
+            loadingSpinner.style.display = 'block';
+            errorMessage.style.display = 'none';
+
+            const response = await fetch('/api/wardrobe/items', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            clothingItems = await response.json();
+
+            // Clear existing options
+            itemsList.innerHTML = '';
+            editItemsList.innerHTML = '';
+
+            // Populate items dropdowns
+            clothingItems.forEach(item => {
+                // For add modal
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <label>
+                        <input type="checkbox" value="${item.id}">
+                        ${item.name} (${item.category.name})
+                    </label>
+                `;
+                itemsList.appendChild(li);
+
+                // For edit modal
+                const editLi = document.createElement('li');
+                editLi.innerHTML = `
+                    <label>
+                        <input type="checkbox" value="${item.id}">
+                        ${item.name} (${item.category.name})
+                    </label>
+                `;
+                editItemsList.appendChild(editLi);
+            });
+
+            // Add event listeners for checkboxes
+            document.querySelectorAll('#outfitItemsList input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateSelectedItemsDisplay(
+                        [],
+                        'outfitItemsList',
+                        'outfitSelectedItems',
+                        'outfitItems'
+                    );
+                });
+            });
+
+            document.querySelectorAll('#editOutfitItemsList input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateSelectedItemsDisplay(
+                        [],
+                        'editOutfitItemsList',
+                        'editOutfitSelectedItems',
+                        'editOutfitItems'
+                    );
+                });
+            });
+
+            loadingSpinner.style.display = 'none';
+
+        } catch (error) {
+            console.error('Error fetching clothing items:', error);
+            loadingSpinner.style.display = 'none';
+            errorMessage.style.display = 'block';
+            errorMessage.textContent = 'Failed to load clothing items. Please try again later.';
+        }
+    }
+
+    // Function to fetch outfits
+    async function fetchOutfits(filters = {}) {
+        try {
+            // Build query string from filters
+            const queryParams = new URLSearchParams();
+            if (filters.occasion) queryParams.append('occasion', filters.occasion);
+            if (filters.season) queryParams.append('season', filters.season);
+            if (filters.search) queryParams.append('search', filters.search);
+
+            const response = await fetch(`/api/outfits?${queryParams.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch outfits');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching outfits:', error);
+            showErrorMessage('Failed to load outfits. Please try again later.');
+            throw error;
+        }
+    }
+
+    // Function to update the outfits table
+    function updateTable(outfits) {
+        const tbody = document.getElementById('outfitsTableBody');
+        tbody.innerHTML = '';
+
+        if (outfits.length === 0) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td colspan="8" class="text-center py-4">
+                    <i class="fas fa-box-open fa-2x mb-2" style="color: var(--primary-light);"></i>
+                    <p class="mb-0">No outfits found</p>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            return;
+        }
+
+        outfits.forEach(outfit => {
+            const tr = document.createElement('tr');
+            tr.dataset.outfitId = outfit.id;
+            tr.innerHTML = `
+                <td>${outfit.id}</td>
+                <td>
+                    <div class="fw-bold">${outfit.name}</div>
+                    <small class="text-muted">Created ${formatDate(outfit.createdAt)}</small>
+                </td>
+                <td><span class="badge badge-occasion">${outfit.occasion || 'N/A'}</span></td>
+                <td><span class="badge badge-season">${outfit.season || 'N/A'}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary view-items-btn" data-outfit-id="${outfit.id}">
+                        <i class="fas fa-eye me-1"></i> View Items
+                    </button>
+                </td>
+                <td>${outfit.wearCount}</td>
+                <td>
+                    <div class="text-truncate" style="max-width: 200px;">
+                        ${outfit.description || 'No description'}
+                    </div>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-warning btn-sm edit-btn" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm delete-btn" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Function to format date
+    function formatDate(dateString) {
+        if (!dateString) return 'recently';
+
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+        if (diffInDays === 0) return 'today';
+        if (diffInDays === 1) return 'yesterday';
+        if (diffInDays < 7) return `${diffInDays} days ago`;
+        if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} weeks ago`;
+        return date.toLocaleDateString();
+    }
+
+    // Function to load outfits
+    async function loadOutfits() {
+        try {
+            const filters = {
+                occasion: document.getElementById('filterOccasion').value,
+                season: document.getElementById('filterSeason').value,
+                search: document.querySelector('input[placeholder="Search outfits..."]').value
+            };
+
+            const data = await fetchOutfits(filters);
+            updateTable(data);
+        } catch (error) {
+            console.error('Error loading outfits:', error);
+        }
+    }
+
+    // Function to view outfit items
+    // Replace the existing viewOutfitItems function with this one
+    async function viewOutfitItems(outfitId) {
+        try {
+            const response = await fetch(`/api/outfits/clothingItems/${outfitId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch outfit details');
+            }
+
+            const outfitItems = await response.json();
+            const container = document.getElementById('outfitItemsContainer');
+            container.innerHTML = '';
+
+            if (!outfitItems || outfitItems.length === 0) {
+                container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-box-open fa-3x mb-3"></i>
+                    <h4>No items in this outfit</h4>
+                    <p class="text-muted">This outfit doesn't contain any items yet.</p>
+                </div>
+            `;
+                return;
+            }
+
+            // Create cards for each item
+            outfitItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'outfit-item-card';
+                card.innerHTML = `
+                <div class="outfit-item-image-container">
+                    <img src="${item.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}"
+                         class="outfit-item-image"
+                         alt="${item.name}"
+                         onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                </div>
+                <div class="outfit-item-body">
+                    <h5 class="outfit-item-name">${item.name}</h5>
+                    <p class="outfit-item-category">${item.categoryName || 'No category'}</p>
+                    <p class="outfit-item-description">${item.description || 'No description available'}</p>
+                    <div class="outfit-item-badges">
+                        ${item.color ? `<span class="outfit-item-badge badge-color">${item.color}</span>` : ''}
+                        ${item.categoryName ? `<span class="outfit-item-badge badge-category">${item.categoryName}</span>` : ''}
+                    </div>
+                </div>
+            `;
+                container.appendChild(card);
+            });
+
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('viewOutfitItemsModal'));
+            modal.show();
+
+        } catch (error) {
+            console.error('Error fetching outfit items:', error);
+            showErrorMessage('Failed to load outfit items: ' + error.message);
+        }
+    }
+
+    // Function to add a new outfit
+    async function addOutfit() {
+        const errorMessage = document.getElementById('errorMessage');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const submitButton = document.getElementById('submitOutfitButton');
+        const originalButtonText = submitButton.innerHTML;
+
+        try {
+            loadingSpinner.style.display = 'block';
+            errorMessage.style.display = 'none';
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+
+            const outfitData = {
+                name: document.getElementById('outfitName').value,
+                occasion: document.getElementById('outfitOccasion').value || null,
+                season: document.getElementById('outfitSeason').value || null,
+                description: document.getElementById('outfitDescription').value || null,
+                items: document.getElementById('outfitItems').value.split(',').filter(id => id)
+            };
+
+            const response = await fetch('/api/outfits', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(outfitData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to add outfit');
+            }
+
+            const result = await response.json();
+            loadingSpinner.style.display = 'none';
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
+
+            return result;
+        } catch (error) {
+            console.error('Error adding outfit:', error);
+            loadingSpinner.style.display = 'none';
+            errorMessage.style.display = 'block';
+            errorMessage.textContent = error.message || 'Failed to add outfit. Please try again.';
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
+            throw error;
+        }
+    }
+
+    // Function to edit an outfit
+    async function editOutfit(outfitId) {
+        try {
+            const response = await fetch(`/api/outfits/${outfitId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch outfit details');
+            }
+
+            const outfit = await response.json();
+
+            // Populate edit form
+            document.getElementById('editOutfitId').value = outfit.id;
+            document.getElementById('editOutfitName').value = outfit.name;
+            document.getElementById('editOutfitOccasion').value = outfit.occasion || '';
+            document.getElementById('editOutfitSeason').value = outfit.season || '';
+            document.getElementById('editOutfitDescription').value = outfit.description || '';
+
+            // Set selected items
+            const checkboxes = document.querySelectorAll('#editOutfitItemsList input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = outfit.clothes.some(item => item.id == checkbox.value);
+            });
+
+            // Update selected items display
+            updateSelectedItemsDisplay(
+                [],
+                'editOutfitItemsList',
+                'editOutfitSelectedItems',
+                'editOutfitItems'
+            );
+
+            // Show edit modal
+            const editModal = new bootstrap.Modal(document.getElementById('editOutfitModal'));
+            editModal.show();
+
+        } catch (error) {
+            console.error('Error fetching outfit for edit:', error);
+            showErrorMessage('Failed to load outfit for editing: ' + error.message);
+        }
+    }
+
+    // Function to save edited outfit
+    async function saveEditedOutfit() {
+        const errorMessage = document.getElementById('editErrorMessage');
+        const loadingSpinner = document.getElementById('editLoadingSpinner');
+        const submitButton = document.getElementById('editSubmitButton');
+        const originalButtonText = submitButton.innerHTML;
+
+        try {
+            loadingSpinner.style.display = 'block';
+            errorMessage.style.display = 'none';
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+
+            const outfitId = document.getElementById('editOutfitId').value;
+            const outfitData = {
+                name: document.getElementById('editOutfitName').value,
+                occasion: document.getElementById('editOutfitOccasion').value || null,
+                season: document.getElementById('editOutfitSeason').value || null,
+                description: document.getElementById('editOutfitDescription').value || null,
+                items: document.getElementById('editOutfitItems').value.split(',').filter(id => id)
+            };
+
+            const response = await fetch(`/api/outfits/${outfitId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(outfitData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to update outfit');
+            }
+
+            const result = await response.json();
+            loadingSpinner.style.display = 'none';
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
+
+            return result;
+        } catch (error) {
+            console.error('Error updating outfit:', error);
+            loadingSpinner.style.display = 'none';
+            errorMessage.style.display = 'block';
+            errorMessage.textContent = error.message || 'Failed to update outfit. Please try again.';
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
+            throw error;
+        }
+    }
+
+    // Function to delete an outfit
+    async function deleteOutfit(outfitId) {
+        outfitToDelete = outfitId;
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
+        deleteModal.show();
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize dropdown checklists
+        initializeDropdownChecklists();
+
+        // Load initial data
+        fetchClothingItemsForDropdown();
+        loadOutfits();
+
+        // Add outfit button handler
+        document.getElementById('submitOutfitButton').addEventListener('click', async function() {
+            const form = document.getElementById('addOutfitForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            try {
+                const result = await addOutfit();
+
+                // Close modal and show success message
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addOutfitModal'));
+                modal.hide();
+                form.reset();
+
+                // Reset selected items display
+                document.querySelectorAll('#outfitItemsList input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                document.getElementById('outfitSelectedItems').innerHTML = '<span class="text-muted">No items selected</span>';
+                document.getElementById('outfitItems').value = '';
+
+                showSuccessMessage('Outfit added successfully!');
+                loadOutfits(); // Refresh the table
+            } catch (error) {
+                console.error('Add outfit error:', error);
+            }
+        });
+
+        // Edit outfit button handler
+        document.getElementById('editSubmitButton').addEventListener('click', async function() {
+            const form = document.getElementById('editOutfitForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            try {
+                const result = await saveEditedOutfit();
+
+                // Close modal and show success message
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editOutfitModal'));
+                modal.hide();
+
+                showSuccessMessage('Outfit updated successfully!');
+                loadOutfits(); // Refresh the table
+            } catch (error) {
+                console.error('Edit outfit error:', error);
+            }
+        });
+
+        // Confirm delete button handler
+        document.getElementById('confirmDeleteButton').addEventListener('click', async function() {
+            if (!outfitToDelete) return;
+
+            try {
+                const response = await fetch(`/api/outfits/${outfitToDelete}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete outfit');
+                }
+
+                // Close the modal
+                const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmationModal'));
+                deleteModal.hide();
+
+                showSuccessMessage('Outfit deleted successfully');
+                loadOutfits(); // Refresh the table
+            } catch (error) {
+                console.error('Error deleting outfit:', error);
+                showErrorMessage('Failed to delete outfit: ' + error.message);
+            } finally {
+                outfitToDelete = null;
+            }
+        });
+
+        // Search input handler
+        document.querySelector('input[placeholder="Search outfits..."]').addEventListener('input', function(e) {
+            loadOutfits();
+        });
+
+        // Apply filters button handler
+        document.getElementById('applyFiltersBtn').addEventListener('click', function() {
+            loadOutfits();
+        });
+
+        // Delegate event listeners for dynamic content
+        document.getElementById('outfitsTableBody').addEventListener('click', function(e) {
+            // Delete button handler
+            if (e.target.closest('.delete-btn')) {
+                e.preventDefault();
+                const outfitId = e.target.closest('tr').dataset.outfitId;
+                deleteOutfit(outfitId);
+            }
+
+            // Edit button handler
+            if (e.target.closest('.edit-btn')) {
+                e.preventDefault();
+                const outfitId = e.target.closest('tr').dataset.outfitId;
+                editOutfit(outfitId);
+            }
+
+            // View items button handler
+            if (e.target.closest('.view-items-btn')) {
+                e.preventDefault();
+                const outfitId = e.target.closest('.view-items-btn').dataset.outfitId;
+                viewOutfitItems(outfitId);
+            }
+        });
+    });
+
+    // Load clothing items when modal is opened
+    document.getElementById('addOutfitModal').addEventListener('show.bs.modal', function() {
+        fetchClothingItemsForDropdown();
+    });
+</script>
+<script src="/js/logout.js"></script>
+<script src="/js/user.js"></script>
+</body>
+</html>

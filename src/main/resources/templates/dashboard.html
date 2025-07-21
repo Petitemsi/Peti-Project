@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wardrobe - PETI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+        <a class="navbar-brand" href="/dashboard">
+            <i class="fas fa-tshirt me-2"></i>PETI
+        </a>
+        <div class="navbar-nav me-auto">
+            <!-- Admin-only items with admin-link class -->
+            <a class="nav-link admin-link" href="/api/page/adminDashboard">
+                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+            </a>
+            <a class="nav-link" href="/api/page/dashboard">
+                <i class="fa fa-shopping-bag me-1"></i>Wardrobe
+            </a>
+            <a class="nav-link admin-link" th:href="@{/api/page/users}">
+                <i class="fas fa-users-cog me-1"></i>User Management
+            </a>
+            <a class="nav-link admin-link" href="/api/page/category">
+                <i class="fas fa-tags me-1"></i>Category
+            </a>
+            <a class="nav-link" href="/api/page/addItem">
+                <i class="fas fa-tshirt me-1"></i>Clothing Item
+            </a>
+            <!-- End of admin-only items -->
+<!--            <a class="nav-link" href="/api/page/outfits">-->
+<!--                <i class="fa fa-black-tie me-1"></i>Outfits-->
+<!--            </a>-->
+
+            <a class="nav-link" href="/api/page/analytics">
+                <i class="fas fa-chart-bar me-1"></i>Analytics
+            </a>
+        </div>
+        <ul class="navbar-nav">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-user me-1"></i>
+                    <span id="usernameDisplay"></span>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/api/page/profile"> <i class="fas fa-user me-2"></i>Profile</a></li>
+                    <li> <a class="dropdown-item" href="/api/page/reports">
+                        <i class="fas fa-flag me-2"></i>Reports
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" onclick="logout()"> <i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</nav>
+<script src="/js/navbar.js"></script>
+<main class="container mt-4">
+    <div class="row mb-4 dashboard-header">
+        <div class="col-md-8">
+            <h1 class="display-4">
+                <i class="fas fa-tshirt me-2"></i>My Wardrobe
+            </h1>
+            <p>Manage your clothing items and track usage</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="/api/page/sugesstion" class="btn btn-primary">
+                <i class="fas fa-magic me-2"></i>Generate Outfit Suggestion
+            </a>
+        </div>
+    </div>
+
+    <!-- Weather Info Section -->
+    <div id="weatherInfo" class="weather-info">
+        <div class="weather-header">
+            <h4><i class="fas fa-cloud-sun me-2"></i>Current Weather</h4>
+            <button class="btn btn-sm btn-outline-secondary" onclick="refreshWeather()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+        <div id="loading" class="weather-loading">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-spinner fa-spin me-2"></i> Loading weather data...
+            </div>
+        </div>
+        <div id="error" class="alert alert-danger mb-2 weather-error"></div>
+        <div id="weatherContainer" class="row weather-container">
+            <div class="col-md-6">
+                <div class="card weather-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <i id="weatherIcon" class="weather-icon"></i>
+                            <div>
+                                <h2 class="mb-0" id="temperature">--°C</h2>
+                                <span class="weather-condition" id="weatherCondition">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card weather-card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <p class="mb-1"><i class="fas fa-wind me-2"></i> Wind</p>
+                                <p class="mb-1"><i class="fas fa-location-arrow me-2"></i> Direction</p>
+                                <p class="mb-1"><i class="fas fa-map-marker-alt me-2"></i> Location</p>
+                            </div>
+                            <div class="col-6">
+                                <p class="mb-1" id="windSpeed">-- km/h</p>
+                                <p class="mb-1" id="windDirection">--°</p>
+                                <p class="mb-1 text-truncate" id="address">--</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4 search-container">
+        <div class="col-md-6">
+            <div class="d-flex">
+                <input type="text" class="form-control me-2" id="searchInput"
+                       placeholder="Search items...">
+                <button type="button" class="btn btn-outline-primary" onclick="searchItems()">Search</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingDiv" class="loading-state">
+        <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+        <p>Loading your wardrobe...</p>
+    </div>
+
+    <div id="emptyDiv" class="empty-state-dashboard" style="display: none;">
+        <i class="fas fa-tshirt fa-3x mb-3"></i>
+        <h3>No items found</h3>
+        <p>Start building your wardrobe by adding your first item!</p>
+        <a href="/api/page/addItem" class="btn btn-primary">Add Your First Item</a>
+    </div>
+
+    <div id="itemsContainer" class="row" style="display: none;">
+        <!-- Items will be loaded here dynamically -->
+    </div>
+    <!-- Add this after the itemsContainer div in dashboard.html -->
+    <div class="card-footer d-flex justify-content-between align-items-center">
+        <div id="paginationControls" class="pagination-container"></div>
+        <div class="items-per-page">
+            <select class="form-select form-select-sm" id="itemsPerPage" style="width: 80px;">
+                <option value="8">8</option>
+                <option value="12" selected>12</option>
+                <option value="16">16</option>
+                <option value="20">20</option>
+            </select>
+        </div>
+    </div>
+</main>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/dashboard.js"></script>
+<script src="/js/user.js"></script>
+<script src="/js/logout.js"></script>
+</body>
+</html>

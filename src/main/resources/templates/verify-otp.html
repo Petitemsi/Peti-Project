@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP - PETI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .verify-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 2rem;
+        }
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="verify-card">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold text-dark">Verify OTP</h3>
+                    <p class="text-muted">Enter the OTP sent to your email</p>
+                </div>
+
+                <div id="errorAlert" class="alert alert-danger" role="alert" style="display: none;">
+                    <span id="errorMessage"></span>
+                </div>
+
+                <div id="successAlert" class="alert alert-success" role="alert" style="display: none;">
+                    <span id="successMessage"></span>
+                </div>
+
+                <form id="verifyOtpForm">
+                    <div class="mb-3">
+                        <label for="otp" class="form-label">OTP Code</label>
+                        <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                            <input type="text" class="form-control" id="otp" name="otp" required maxlength="6">
+                        </div>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="button" class="btn btn-primary" id="verifyOtpBtn" onclick="verifyOTP()">
+                            <i class="fas fa-check-circle me-2"></i>Verify OTP
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center">
+                    <p class="text-muted mb-0">Didn't receive OTP?</p>
+                    <a href="#" class="text-decoration-none" id="resendOtpLink">
+                        <i class="fas fa-redo me-1"></i>Resend OTP
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set up resend OTP link
+        document.getElementById('resendOtpLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            resendOTP();
+        });
+    });
+
+    async function verifyOTP() {
+        const otp = document.getElementById('otp').value;
+        const email = localStorage.getItem('resetPasswordEmail');
+        const errorAlert = document.getElementById('errorAlert');
+        const errorMessage = document.getElementById('errorMessage');
+        const successAlert = document.getElementById('successAlert');
+        const successMessage = document.getElementById('successMessage');
+        const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+
+        // Debug: Check if elements exist (similar to login.html)
+        console.log('Elements found:', {
+            errorAlert: !!errorAlert,
+            errorMessage: !!errorMessage,
+            successAlert: !!successAlert,
+            successMessage: !!successMessage,
+            verifyOtpBtn: !!verifyOtpBtn
+        });
+
+        if (!email) {
+            if (errorAlert) {
+                errorAlert.style.display = 'block';
+                if (errorMessage) {
+                    errorMessage.textContent = 'Session expired. Please start the password reset process again.';
+                }
+            }
+            if (successAlert) successAlert.style.display = 'none';
+            return;
+        }
+
+        // Disable the button to prevent multiple submissions (with spinner like login.html)
+        if (verifyOtpBtn) {
+            verifyOtpBtn.disabled = true;
+            verifyOtpBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verifying...';
+        }
+
+        try {
+            const response = await fetch('/api/auth/verify-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, otp })
+            });
+
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+
+            if (response.ok) {
+                console.log('OTP verification successful:');
+
+                // Hide error message and show success
+                if (errorAlert) errorAlert.style.display = 'none';
+                if (successAlert) {
+                    successAlert.style.display = 'block';
+                    if (successMessage) {
+                        successMessage.textContent = 'OTP verified successfully! Redirecting to password reset page...';
+                    }
+                }
+
+                // Redirect to password reset page after a short delay
+                console.log('Redirecting to password reset...');
+                setTimeout(() => {
+                    window.location.href = '/public/resetPassword';
+                }, 2000);
+            } else {
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+                }
+                console.log('OTP verification error:', errorData);
+
+                // Show error message
+                if (errorAlert) {
+                    errorAlert.style.display = 'block';
+                    if (errorMessage) {
+                        errorMessage.textContent = errorData.message || 'Invalid OTP';
+                    }
+                }
+                if (successAlert) successAlert.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Network error:', error);
+
+            // Show network error
+            if (errorAlert) {
+                errorAlert.style.display = 'block';
+                if (errorMessage) {
+                    errorMessage.textContent = 'Network error. Please check your connection and try again.';
+                }
+            }
+            if (successAlert) successAlert.style.display = 'none';
+        } finally {
+            // Re-enable the button (with original text like login.html)
+            if (verifyOtpBtn) {
+                verifyOtpBtn.disabled = false;
+                verifyOtpBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Verify OTP';
+            }
+        }
+    }
+
+    async function resendOTP() {
+        const email = localStorage.getItem('resetPasswordEmail');
+        const errorAlert = document.getElementById('errorAlert');
+        const errorMessage = document.getElementById('errorMessage');
+        const successAlert = document.getElementById('successAlert');
+        const successMessage = document.getElementById('successMessage');
+        const resendOtpLink = document.getElementById('resendOtpLink');
+
+        // Debug: Check if elements exist
+        console.log('Elements found:', {
+            errorAlert: !!errorAlert,
+            errorMessage: !!errorMessage,
+            successAlert: !!successAlert,
+            successMessage: !!successMessage,
+            resendOtpLink: !!resendOtpLink
+        });
+
+        if (!email) {
+            if (errorAlert) {
+                errorAlert.style.display = 'block';
+                if (errorMessage) {
+                    errorMessage.textContent = 'Session expired. Please start the password reset process again.';
+                }
+            }
+            if (successAlert) successAlert.style.display = 'none';
+            return;
+        }
+
+        // Disable the link to prevent multiple submissions (with spinner)
+        if (resendOtpLink) {
+            resendOtpLink.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending...';
+            resendOtpLink.style.pointerEvents = 'none';
+        }
+
+        try {
+            const response = await fetch('/api/auth/forgot-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email })
+            });
+
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+
+            if (response.ok) {
+                // Hide error message and show success
+                if (errorAlert) errorAlert.style.display = 'none';
+                if (successAlert) {
+                    successAlert.style.display = 'block';
+                    if (successMessage) {
+                        successMessage.textContent = 'New OTP sent successfully!';
+                    }
+                }
+            } else {
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+                }
+                console.log('Resend OTP error:', errorData);
+
+                // Show error message
+                if (errorAlert) {
+                    errorAlert.style.display = 'block';
+                    if (errorMessage) {
+                        errorMessage.textContent = errorData.message || 'Failed to resend OTP';
+                    }
+                }
+                if (successAlert) successAlert.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Network error:', error);
+
+            // Show network error
+            if (errorAlert) {
+                errorAlert.style.display = 'block';
+                if (errorMessage) {
+                    errorMessage.textContent = 'Network error. Please check your connection and try again.';
+                }
+            }
+            if (successAlert) successAlert.style.display = 'none';
+        } finally {
+            // Re-enable the link (with original text)
+            if (resendOtpLink) {
+                resendOtpLink.innerHTML = '<i class="fas fa-redo me-1"></i>Resend OTP';
+                resendOtpLink.style.pointerEvents = 'auto';
+            }
+        }
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

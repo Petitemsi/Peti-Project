@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Closet Analytics - Unused Items</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/adminDashboard.css">
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+        <a class="navbar-brand" href="/dashboard">
+            <i class="fas fa-tshirt me-2"></i>PETI
+        </a>
+        <div class="navbar-nav me-auto">
+            <!-- Admin-only items with admin-link class -->
+            <a class="nav-link admin-link" href="/api/page/adminDashboard">
+                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+            </a>
+            <a class="nav-link" href="/api/page/dashboard">
+                <i class="fa fa-shopping-bag me-1"></i>Wardrobe
+            </a>
+            <a class="nav-link admin-link" th:href="@{/api/page/users}">
+                <i class="fas fa-users-cog me-1"></i>User Management
+            </a>
+            <a class="nav-link admin-link" href="/api/page/category">
+                <i class="fas fa-tags me-1"></i>Category
+            </a>
+            <a class="nav-link" href="/api/page/addItem">
+                <i class="fas fa-tshirt me-1"></i>Clothing Item
+            </a>
+            <!-- End of admin-only items -->
+<!--            <a class="nav-link" href="/api/page/outfits">-->
+<!--                <i class="fa fa-black-tie me-1"></i>Outfits-->
+<!--            </a>-->
+
+            <a class="nav-link" href="/api/page/analytics">
+                <i class="fas fa-chart-bar me-1"></i>Analytics
+            </a>
+        </div>
+        <ul class="navbar-nav">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-user me-1"></i>
+                    <span id="usernameDisplay"></span>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/api/page/profile"> <i class="fas fa-user me-2"></i>Profile</a></li>
+                    <li> <a class="dropdown-item" href="/api/page/reports">
+                        <i class="fas fa-flag me-2"></i>Reports
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" onclick="logout()"> <i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</nav>
+<script src="/js/navbar.js"></script>
+<script src="/js/user.js"></script>
+<script src="/js/logout.js"></script>
+<!-- Main Content -->
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header mb-4 container-fluid mt-4">
+        <div class="container text-center lead">
+            <h1 class="display-4"><i class="fas fa-bell me-2"></i>Unused Items Report</h1>
+            <p class="lead">Items that haven't been worn in the last 30 days</p>
+            <div class="d-flex justify-content-center gap-3 mt-3">
+                <button class="btn btn-light btn-sm" id="export-btn">
+                    <i class="fas fa-download me-1"></i> Export Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stats-card">
+                <i class="fas fa-tshirt stats-icon"></i>
+                <div class="stats-number loading" id="total-items"></div>
+                <div class="stats-label">Total Items in Closet</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <i class="fas fa-bell stats-icon"></i>
+                <div class="stats-number loading" id="unused-items"></div>
+                <div class="stats-label">Unused This Month</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <i class="fas fa-percentage stats-icon"></i>
+                <div class="stats-number loading" id="unused-percentage"></div>
+                <div class="stats-label">Of Your Wardrobe</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Actions -->
+    <div class="search-bar mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-4 mb-2 mb-md-0">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control border-start-0" placeholder="Search items..." id="search-input">
+                </div>
+            </div>
+            <div class="col-md-4 mb-2 mb-md-0">
+                <select class="form-select" id="category-filter">
+                    <option selected value="all">All Categories</option>
+                    <!-- Categories will be populated dynamically -->
+                </select>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex justify-content-md-end gap-2">
+                    <button class="btn btn-outline-primary" id="filter-btn">
+                        <i class="fas fa-filter me-1"></i> Filter
+                    </button>
+                    <button class="btn btn-primary" id="refresh-btn">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unused Items Grid -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Unused Clothing Items</h5>
+        </div>
+        <div class="card-body">
+            <div class="outfit-items-container" id="items-container">
+                <!-- Loading placeholders -->
+                <div class="outfit-item-card placeholder-glow">
+                    <div style="height: 200px; background-color: #e9ecef;"></div>
+                    <div class="p-3">
+                        <h5 class="placeholder col-8"></h5>
+                        <p class="placeholder col-6"></p>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <span class="placeholder col-3"></span>
+                            <span class="placeholder col-3"></span>
+                        </div>
+                        <p class="placeholder col-5"></p>
+                    </div>
+                </div>
+                <div class="outfit-item-card placeholder-glow">
+                    <div style="height: 200px; background-color: #e9ecef;"></div>
+                    <div class="p-3">
+                        <h5 class="placeholder col-8"></h5>
+                        <p class="placeholder col-6"></p>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <span class="placeholder col-3"></span>
+                            <span class="placeholder col-3"></span>
+                        </div>
+                        <p class="placeholder col-5"></p>
+                    </div>
+                </div>
+                <div class="outfit-item-card placeholder-glow">
+                    <div style="height: 200px; background-color: #e9ecef;"></div>
+                    <div class="p-3">
+                        <h5 class="placeholder col-8"></h5>
+                        <p class="placeholder col-6"></p>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <span class="placeholder col-3"></span>
+                            <span class="placeholder col-3"></span>
+                        </div>
+                        <p class="placeholder col-5"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notifications -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div class="toast toast-success" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Closet Analytics</strong>
+            <small>Just now</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            <i class="fas fa-check-circle me-2"></i> Unused items report generated successfully!
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Global variables to store items
+    let allUnusedItems = [];
+    let filteredItems = [];
+
+    // Initialize toasts and load data when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        var toastEl = document.querySelector('.toast');
+        var toast = new bootstrap.Toast(toastEl);
+        toast.show();
+
+        // Load all data when page loads
+        fetchAndPopulateCategories();
+        loadAnalyticsData();
+
+        // Setup event listeners
+        document.getElementById('refresh-btn').addEventListener('click', function() {
+            fetchAndPopulateCategories();
+            loadAnalyticsData();
+        });
+        document.getElementById('filter-btn').addEventListener('click', applyFilters);
+        document.getElementById('search-input').addEventListener('input', applyFilters);
+        document.getElementById('category-filter').addEventListener('change', applyFilters);
+        document.getElementById('export-btn').addEventListener('click', exportToCSV);
+    });
+
+    async function fetchAndPopulateCategories() {
+        try {
+            const response = await fetch('/api/categories', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch categories');
+            }
+
+            const categories = await response.json();
+            const categoryFilter = document.getElementById('category-filter');
+
+            // Clear existing options (keeping the "All Categories" option)
+            while (categoryFilter.options.length > 1) {
+                categoryFilter.remove(1);
+            }
+
+            // Add new categories
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.name || category.id; // Use category.name if available, otherwise fall back to id
+                option.textContent = category.name || category.id;
+                categoryFilter.appendChild(option);
+            });
+
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+            showErrorToast('Failed to load categories');
+        }
+    }
+
+    async function loadAnalyticsData() {
+        try {
+            // Show loading states
+            document.querySelectorAll('.stats-number').forEach(el => {
+                el.classList.add('loading');
+                el.textContent = '';
+            });
+
+            document.getElementById('items-container').innerHTML = `
+                <div class="outfit-item-card placeholder-glow">
+                    <div style="height: 200px; background-color: #e9ecef;"></div>
+                    <div class="p-3">
+                        <h5 class="placeholder col-8"></h5>
+                        <p class="placeholder col-6"></p>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <span class="placeholder col-3"></span>
+                            <span class="placeholder col-3"></span>
+                        </div>
+                        <p class="placeholder col-5"></p>
+                    </div>
+                </div>
+                <!-- Add more placeholders if needed -->
+            `;
+
+            // Fetch all data in parallel
+            const [totalItems, unusedItems, unusedPercentage, unusedItemsList] = await Promise.all([
+                fetch('/api/wardrobe/items/total').then(res => res.json()),
+                fetch('/api/wardrobe/items/unused/total').then(res => res.json()),
+                fetch('/api/wardrobe/items/unused/percentage').then(res => res.json()),
+                fetch('/api/wardrobe/items/unused/last-30-days').then(res => res.json())
+            ]);
+
+            // Update stats cards
+            document.getElementById('total-items').textContent = totalItems;
+            document.getElementById('unused-items').textContent = unusedItems;
+            document.getElementById('unused-percentage').textContent = `${Math.round(unusedPercentage)}%`;
+
+            // Remove loading classes
+            document.querySelectorAll('.stats-number').forEach(el => {
+                el.classList.remove('loading');
+            });
+
+            // Store items and display them
+            allUnusedItems = unusedItemsList;
+            filteredItems = [...allUnusedItems];
+            displayItems(filteredItems);
+
+        } catch (error) {
+            console.error('Error loading analytics data:', error);
+            showErrorToast('Failed to load analytics data');
+
+            // Remove loading classes even if there's an error
+            document.querySelectorAll('.stats-number').forEach(el => {
+                el.classList.remove('loading');
+            });
+        }
+    }
+
+    function applyFilters() {
+        const searchTerm = document.getElementById('search-input').value.toLowerCase();
+        const categoryFilter = document.getElementById('category-filter').value;
+
+        filteredItems = allUnusedItems.filter(item => {
+            // Search filter
+            const matchesSearch = item.name.toLowerCase().includes(searchTerm) ||
+                (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm)));
+
+            // Category filter
+            const matchesCategory = categoryFilter === 'all' ||
+                (item.categoryName && item.categoryName.toLowerCase() === categoryFilter.toLowerCase());
+
+            return matchesSearch && matchesCategory;
+        });
+
+        displayItems(filteredItems);
+    }
+
+    function displayItems(items) {
+        const container = document.getElementById('items-container');
+
+        if (items.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h4>No items match your filters</h4>
+                    <p class="text-muted">Try adjusting your search or category filters.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = '';
+
+        items.forEach(item => {
+            const lastUsedDays = item.lastUsedDate ?
+                Math.floor((new Date() - new Date(item.lastUsedDate)) / (1000 * 60 * 60 * 24)) :
+                'Never';
+
+            const itemCard = `
+                <div class="outfit-item-card">
+                    <div style="height: 200px; overflow: hidden;">
+                        <img src="${item.imageUrl || 'https://via.placeholder.com/300x400/dfe6e9/636e72?text=No+Image'}"
+                             class="outfit-item-image" alt="${item.name}">
+                    </div>
+                    <div class="p-3">
+                        <h5 class="outfit-item-name">${item.name}</h5>
+                        <p class="outfit-item-category">${item.categoryName || 'General'}</p>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            ${item.tags ? item.tags.map(tag => `<span class="badge badge-category">${tag}</span>`).join('') : ''}
+                            ${item.color ? `<span class="badge badge-color">${item.color}</span>` : ''}
+                            ${item.occasion ? `<span class="badge badge-occasion">${item.occasion}</span>` : ''}
+                            ${item.season ? `<span class="badge badge-season">${item.season}</span>` : ''}
+                        </div>
+                        <p class="small text-muted">Last used: ${lastUsedDays} days ago</p>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', itemCard);
+        });
+    }
+
+    function exportToCSV() {
+        if (filteredItems.length === 0) {
+            showErrorToast('No data to export');
+            return;
+        }
+
+        // Create CSV content with all fields from backend
+        const headers = [
+            'ID', 'Name', 'Category', 'Color', 'Season', 'Occasion',
+            'Description', 'Last Used Date', 'Usage Count',
+            'Created At', 'Image URL'
+        ];
+
+        const rows = filteredItems.map(item => {
+            const lastUsedDays = item.lastUsedDate ?
+                Math.floor((new Date() - new Date(item.lastUsedDate)) / (1000 * 60 * 60 * 24)) :
+                'Never Used';
+
+            return [
+                item.id,
+                `"${item.name.replace(/"/g, '""')}"`,
+                `"${item.categoryName || ''}"`,
+                `"${item.color || ''}"`,
+                `"${item.season || ''}"`,
+                `"${item.occasion || ''}"`,
+                `"${item.description ? item.description.replace(/"/g, '""') : ''}"`,
+                item.lastUsedDate || 'Never',
+                item.usageCount || 0,
+                item.createdAt,
+                `"${item.imageUrl || ''}"`,
+                `"${(item.tags || []).join(', ')}"`
+            ];
+        });
+
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.join(','))
+        ].join('\n');
+
+        // Create download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `unused_items_${new Date().toISOString().slice(0, 10)}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Show success toast
+        const toastContainer = document.querySelector('.toast-container');
+        const successToast = `
+            <div class="toast toast-success" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">Export Successful</strong>
+                    <small>Just now</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <i class="fas fa-check-circle me-2"></i> CSV file with all item data downloaded!
+                </div>
+            </div>
+        `;
+
+        toastContainer.insertAdjacentHTML('beforeend', successToast);
+        const toastEl = toastContainer.lastElementChild;
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+
+        // Remove toast after it hides
+        toastEl.addEventListener('hidden.bs.toast', () => {
+            toastEl.remove();
+        });
+    }
+
+    function showErrorToast(message) {
+        const toastContainer = document.querySelector('.toast-container');
+        const errorToast = `
+            <div class="toast toast-error" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">Error</strong>
+                    <small>Just now</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <i class="fas fa-exclamation-circle me-2"></i> ${message}
+                </div>
+            </div>
+        `;
+
+        toastContainer.insertAdjacentHTML('beforeend', errorToast);
+        const toastEl = toastContainer.lastElementChild;
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+
+        // Remove toast after it hides
+        toastEl.addEventListener('hidden.bs.toast', () => {
+            toastEl.remove();
+        });
+    }
+</script>
+</body>
+</html>
