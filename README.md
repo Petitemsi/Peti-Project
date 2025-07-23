@@ -1,3 +1,4 @@
+
 # PETI – Smart Virtual Wardrobe with AI-Powered Outfit Suggestions
 
 **PETI** is a full-stack, AI-enhanced virtual wardrobe system built with Spring Boot, Docker, MySQL, and Thymeleaf. It supports secure JWT authentication, intelligent outfit recommendations powered by OpenAI GPT-4o, real-time weather integration, image handling with Cloudinary, and usage analytics.

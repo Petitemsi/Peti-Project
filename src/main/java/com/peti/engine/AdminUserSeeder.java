@@ -26,10 +26,10 @@ public class AdminUserSeeder
         {
             User user = new User();
             user.setUsername("Admin");
-            user.setFirstName("Sami");
-            user.setLastName("Wilson");
+            user.setFirstName("Tansel");
+            user.setLastName("Aydinli");
             user.setApproved(true);
-            user.setEmail("admin@gmail.com");
+            user.setEmail("tansels.aydinli@gmail.com");
             user.setPassword(passwordEncoder.encode("admin123"));
             user.setRole(Role.ADMIN);
             if (!userRepository.existsByEmail(user.getEmail()))

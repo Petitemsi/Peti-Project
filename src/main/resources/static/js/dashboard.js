@@ -102,13 +102,13 @@ async function getLocationAndWeather() {
                     let errorMessage = 'Error getting location: ';
                     switch (error.code) {
                         case error.PERMISSION_DENIED:
-                            errorMessage += "User denied the request for Geolocation.";
+                            errorMessage += "Please enable location services to get weather data.";
                             break;
                         case error.POSITION_UNAVAILABLE:
                             errorMessage += "Location information is unavailable.";
                             break;
                         case error.TIMEOUT:
-                            errorMessage += "The request to get user location timed out.";
+                            errorMessage += "The request to get your location timed out.";
                             break;
                         default:
                             errorMessage += "An unknown error occurred.";
@@ -268,13 +268,16 @@ async function loadItems(url) {
 
         if (!allItems || allItems.length === 0) {
             emptyDiv.style.display = 'block';
+            itemsContainer.style.display = 'none';
         } else {
             displayItems(allItems);
+            itemsContainer.style.display = 'flex';
         }
     } catch (error) {
         console.error('Error loading items:', error);
         loadingDiv.style.display = 'none';
         emptyDiv.style.display = 'block';
+        itemsContainer.style.display = 'none';
     }
 }
 
@@ -284,19 +287,19 @@ function displayItems(items) {
 
     items.forEach(item => {
         const itemHtml = `
-            <div class="col-md-4 col-lg-3 mb-4">
+            <div class="col-6 col-md-4 col-lg-3">
                 <div class="card h-100 item-card">
                     <div class="position-relative">
                         ${item.imageUrl ?
             `<img src="${item.imageUrl}" class="card-img-top item-image-dashboard" alt="Clothing item">` :
-            `<div class="item-image-placeholder">
-                                <i class="fas fa-tshirt"></i>
+            `<div class="item-image-placeholder d-flex align-items-center justify-content-center">
+                                <i class="fas fa-tshirt fa-2x text-muted"></i>
                             </div>`}
                         <span class="badge bg-primary category-badge">${item.category.name}</span>
                     </div>
                     <div class="card-body">
-                        <h5 class="card-title">${item.name}</h5>
-                        <p class="card-text text-muted">${item.description || ''}</p>
+                        <h5 class="card-title text-truncate">${item.name}</h5>
+                        <p class="card-text text-muted small">${item.description || ''}</p>
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-muted">
                                 <i class="fas fa-calendar me-1"></i>
@@ -311,8 +314,8 @@ function displayItems(items) {
                             </small>
                         </div>
                     </div>
-                    <div class="card-footer bg-transparent card-footer-buttons">
-                        <button class="btn btn-outline-success btn-sm" onclick="markAsUsed(${item.id})">
+                    <div class="card-footer bg-transparent card-footer-buttons p-2">
+                        <button class="btn btn-outline-success btn-sm w-100" onclick="markAsUsed(${item.id})">
                             <i class="fas fa-check me-1"></i>Used
                         </button>
                     </div>
@@ -332,11 +335,11 @@ function updatePaginationControls() {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
     let paginationHTML = `
-        <div class="pagination-info">
+        <div class="pagination-info small mb-2 mb-md-0">
             Showing ${(currentPage * itemsPerPage) + 1} to 
             ${Math.min((currentPage + 1) * itemsPerPage, totalItems)} of ${totalItems} items
         </div>
-        <ul class="pagination">
+        <ul class="pagination pagination-sm mb-0">
     `;
 
     // Previous button
@@ -401,6 +404,8 @@ function changePage(newPage) {
     } else {
         loadAllItems();
     }
+    // Scroll to top of items container
+    document.getElementById('itemsContainer').scrollIntoView({ behavior: 'smooth' });
 }
 
 async function markAsUsed(itemId) {
