@@ -1,268 +1,252 @@
-# PETI - Smart Virtual Wardrobe & Outfit Recommendation System
+# PETI – Smart Virtual Wardrobe with AI-Powered Outfit Suggestions
 
-A full-stack Spring Boot web application that helps users manage their wardrobe, get outfit recommendations, and track clothing usage.
+**PETI** is a full-stack, AI-enhanced virtual wardrobe system built with Spring Boot, Docker, MySQL, and Thymeleaf. It supports secure JWT authentication, intelligent outfit recommendations powered by OpenAI GPT-4o, real-time weather integration, image handling with Cloudinary, and usage analytics.
 
-## Features
+---
 
-- **User Authentication**: Secure JWT-based authentication system
-- **Wardrobe Management**: Add, categorize, and manage clothing items
-- **Usage Tracking**: Track how often you wear each item
-- **Search & Filter**: Find items by category, color, season, or occasion
-- **Responsive UI**: Modern, mobile-friendly interface with Bootstrap
-- **MySQL Database**: Persistent storage with Spring Data JPA
+## 🚀 Features
 
-## Tech Stack
+- 🔐 JWT-based authentication & secure user sessions
+- 👗 Wardrobe management with image uploads and categories
+- 📊 Usage tracking & monthly reports
+- 🤖 AI-powered outfit suggestions (OpenAI GPT-4o)
+- 🌤️ Weather integration with [Open-Meteo](https://open-meteo.com)
+- 🧺 Admin dashboard: user controls & analytics
+- 📱 Responsive UI with Bootstrap
+- 🐳 Docker-ready and unit-tested
 
-- **Backend**: Spring Boot 3.5.3, Spring Security, Spring Data JPA
-- **Frontend**: Thymeleaf, Bootstrap 5, JavaScript
-- **Database**: MySQL 8.0
-- **Authentication**: JWT (JSON Web Tokens)
-- **Build Tool**: Maven
+---
 
-## Getting Started
+## 🛠️ Tech Stack
 
-### Prerequisites
+| Layer     | Technology |
+|-----------|------------|
+| Backend   | Java 17, Spring Boot 3.5.3, Spring Security, Spring Data JPA |
+| Frontend  | Thymeleaf, Bootstrap 5, Font Awesome |
+| Database  | MySQL 8.0 |
+| AI        | OpenAI GPT-4o |
+| Weather   | Open-Meteo API |
+| Image API | Cloudinary |
+| Auth      | JWT Tokens |
+| Build     | Maven |
+| Testing   | JUnit |
+| DevOps    | Docker, Docker Compose |
 
-- Java 17 or higher
-- MySQL 8.0
+---
+
+## 🛠️ Local Setup & Installation
+
+### 🔧 Prerequisites
+
+- Java 17+
+- MySQL 8.0+
 - Maven 3.6+
+- (Optional) Docker & Docker Compose
+- OpenAI API key
+- Cloudinary account
 
-### Installation
+### 📥 Clone the Repository
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Petitemsi/Peti.git
-   cd Peti
-   ```
+git clone https://github.com/Petitemsi/Peti-Project
+cd peti
 
-2. **Configure Database**
-   - Create a MySQL database named `peti`
-   - Update `src/main/resources/application.properties` with your database credentials
 
-3. **Run the application**
-   ```bash
-   mvn spring-boot:run
-   ```
+### ⚙️ Configuration
 
-4. **Access the application**
-   - Open your browser and go to `http://localhost:8080`
-   - Register a new account and start managing your wardrobe!
+Edit `src/main/resources/application.properties`:
 
-## Project Structure
+spring.datasource.url=jdbc:mysql://localhost:3306/peti
+spring.datasource.username=your_db_username
+spring.datasource.password=your_db_password
+
+jwt.secret=your_jwt_secret
+openai.api.key=your_openai_api_key
+
+cloudinary.cloud_name=your_cloud_name
+cloudinary.api_key=your_cloudinary_api_key
+cloudinary.api_secret=your_cloudinary_api_secret
+
+
+### 🧱 Database Setup
+
+CREATE DATABASE peti;
+
+### ▶️ Run the Application
+
+#### Option 1: Using Maven
+
+./mvnw clean package
+java -jar target/peti.jar
+
+#### Option 2: Using Docker
+
+docker-compose up --build
+
+App is available at `http://localhost:8080`
+
+---
+
+## 🧠 AI Integration
+
+- Uses OpenAI GPT-4o to suggest outfits based on wardrobe data, weather, and user preferences
+- Prompts include type, color, usage, and weather context
+
+---
+
+## 🌤️ Weather Support
+
+- Uses Open-Meteo API and browser geolocation
+- Current weather is displayed and influences outfit suggestions
+
+---
+
+## 📁 Project Structure
 
 ```
 src/
 ├── main/
 │   ├── java/com/peti/
-│   │   ├── controller/     # REST controllers
-│   │   ├── model/         # JPA entities
-│   │   ├── repository/    # Data access layer
-│   │   ├── service/       # Business logic
-│   │   └── security/      # JWT authentication
+│   │   ├── controller/
+│   │   ├── model/
+│   │   ├── repository/
+│   │   ├── service/
+│   │   ├── security/
+│   │   ├── dto/
+│   │   └── engine/
 │   └── resources/
-│       ├── templates/     # Thymeleaf views
+│       ├── templates/
+│       ├── static/
 │       └── application.properties
 ```
 
-## Contributing
-
-This project is maintained by Petitemsi. Feel free to submit issues and enhancement requests!
-
-## License
-
-This project is licensed under the MIT License.
-
-## 🎯 Features
-
-### Core Features
-- **User Authentication**: Secure registration and login with Spring Security
-- **Wardrobe Management**: Add, edit, delete, and categorize clothing items
-- **Item Tracking**: Track usage of clothing items and generate reports
-- **Search & Filter**: Search through wardrobe by name, category, color, etc.
-- **Image Upload**: Upload images for clothing items (local storage)
-- **Usage Analytics**: Monitor how often items are used
-
-### Planned Features
-- **Outfit Recommendations**: AI-powered outfit suggestions based on occasion and weather
-- **Weather Integration**: Filter recommendations based on current weather
-- **Monthly Reports**: Automated reports highlighting unused items
-- **Sustainability Suggestions**: Recommend combinations using underutilized items
-
-## 🛠️ Tech Stack
-
-- **Backend**: Java 17, Spring Boot 3.5.3, Spring Security, Spring Data JPA
-- **Database**: MySQL 8.0
-- **Frontend**: Thymeleaf, Bootstrap 5, Font Awesome
-- **Authentication**: JWT tokens
-- **Build Tool**: Maven
-
-## 📁 Project Structure
-
-```
-src/main/java/com/peti/
-├── PetiApplication.java          # Main Spring Boot application
-├── controller/                   # REST and web controllers
-│   ├── AuthController.java      # Authentication endpoints
-│   ├── HomeController.java      # Home page routing
-│   └── WardrobeController.java  # Wardrobe management
-├── model/                       # JPA entities
-│   ├── User.java               # User entity with Spring Security
-│   ├── ClothingItem.java       # Clothing item entity
-│   ├── Outfit.java             # Outfit combinations
-│   └── UsageLog.java           # Usage tracking
-├── repository/                  # Data access layer
-│   ├── UserRepository.java
-│   ├── ClothingItemRepository.java
-│   ├── OutfitRepository.java
-│   └── UsageLogRepository.java
-├── service/                     # Business logic
-│   ├── UserService.java
-│   └── WardrobeService.java
-└── security/                    # Security configuration
-    ├── WebSecurityConfig.java
-    ├── CustomUserDetailsService.java
-    ├── JwtAuthenticationFilter.java
-    └── JwtService.java
-```
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Java 17 or higher
-- MySQL 8.0 or higher
-- Maven 3.6+
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd peti
-   ```
-
-2. **Configure Database**
-   - Create a MySQL database named `peti`
-   - Update `src/main/resources/application.properties` with your database credentials:
-   ```properties
-   spring.datasource.username=your_username
-   spring.datasource.password=your_password
-   ```
-
-3. **Run the application**
-   ```bash
-   mvn spring-boot:run
-   ```
-
-4. **Access the application**
-   - Open your browser and go to `http://localhost:8080`
-   - Register a new account or login
-
-### Default Configuration
-- **Database**: MySQL on localhost:3306
-- **Username**: root
-- **Password**: password
-- **Database**: peti (auto-created if not exists)
+---
 
 ## 📋 API Endpoints
 
-### Authentication
-- `POST /register` - User registration
-- `POST /login` - User login
-- `POST /api/auth/login` - JWT authentication
+### 🔐 Authentication
 
-### Wardrobe Management
-- `GET /wardrobe` - View wardrobe dashboard
-- `GET /wardrobe/upload` - Upload form
-- `POST /wardrobe/upload` - Add new item
-- `GET /wardrobe/search?q={term}` - Search items
-- `GET /wardrobe/category/{category}` - Filter by category
-- `POST /wardrobe/{id}/use` - Mark item as used
-- `DELETE /wardrobe/{id}` - Delete item
+| Method | Endpoint              | Description               |
+|--------|-----------------------|---------------------------|
+| POST   | `/register`           | User registration         |
+| POST   | `/login`              | Form-based login          |
+| POST   | `/api/auth/login`     | JWT-based API login       |
 
-## 🎨 UI Features
+### 👗 Wardrobe Management
 
-### Modern Design
-- Responsive Bootstrap 5 interface
-- Clean, intuitive user experience
-- Card-based item display
-- Search and filtering capabilities
-- Mobile-friendly design
-
-### Pages
-- **Login/Register**: Beautiful gradient design with form validation
-- **Dashboard**: Grid view of wardrobe items with usage tracking
-- **Upload Form**: Comprehensive form for adding new items
-- **Navigation**: Easy access to all features
-
-## 🔒 Security
-
-- Spring Security with JWT authentication
-- Password encryption with BCrypt
-- Role-based access control (USER, ADMIN)
-- CSRF protection
-- Secure session management
-
-## 📊 Data Models
-
-### User
-- Username, email, password
-- Role-based permissions
-- Account creation tracking
-
-### ClothingItem
-- Name, category, color, season, occasion
-- Image URL, description
-- Usage tracking (count, last used date)
-- User association
-
-### Outfit
-- Name, occasion, season
-- Multiple clothing items
-- Usage tracking
-- User association
-
-### UsageLog
-- Item usage tracking
-- Date and time stamps
-- Optional notes
-- Outfit association
-
-## 🚧 Next Steps
-
-### Phase 2: Outfit Recommendation Engine
-- Implement outfit combination logic
-- Add weather API integration
-- Create recommendation algorithms
-- Build outfit suggestion interface
-
-### Phase 3: Advanced Features
-- Image recognition for automatic tagging
-- Monthly usage reports
-- Sustainability suggestions
-- Social features (sharing outfits)
-
-### Phase 4: Deployment
-- Cloud deployment (Heroku, Railway, or Render)
-- Production database setup
-- Environment configuration
-- Performance optimization
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions, please open an issue in the repository or contact the development team.
+| Method | Endpoint                           | Description                    |
+|--------|------------------------------------|--------------------------------|
+| GET    | `/wardrobe`                        | View wardrobe dashboard        |
+| GET    | `/wardrobe/upload`                 | Upload clothing form           |
+| POST   | `/wardrobe/upload`                 | Add new clothing item          |
+| GET    | `/wardrobe/search?q={term}`        | Search items                   |
+| GET    | `/wardrobe/category/{category}`    | Filter by category             |
+| POST   | `/wardrobe/{id}/use`               | Mark item as used              |
+| DELETE | `/wardrobe/{id}`                   | Delete item                    |
 
 ---
 
-**PETI** - Making wardrobe management smart and sustainable! 🧥👗👠 
+## 🔐 Environment Variables
+
+| Variable            | Description               |
+|---------------------|---------------------------|
+| `JWT_SECRET`        | JWT token encryption key  |
+| `DB_USERNAME`       | MySQL username            |
+| `DB_PASSWORD`       | MySQL password            |
+| `OPENAI_API_KEY`    | GPT-4o access key         |
+| `CLOUDINARY_*`      | Cloudinary credentials    |
+
+---
+
+## 🧪 Testing
+
+Run tests with:
+
+```bash
+./mvnw test
+```
+
+Covered services:
+- AuthService
+- ReportService
+- WardrobeService
+- OutfitSuggestionService
+
+---
+
+## 📊 Data Models
+
+### 👤 User
+
+- Username, email, password
+- Role (USER/ADMIN)
+- Account creation metadata
+
+### 👕 ClothingItem
+
+- Name, category, color, season, occasion
+- Image URL, usage tracking, description
+- Linked to user
+
+### 👔 Outfit
+
+- Name, season, occasion
+- Multiple items
+- User association, usage metadata
+
+### 📝 UsageLog
+
+- Item and date used
+- Optional notes
+- Connected to outfit
+
+---
+
+## 🚧 Next Steps
+
+### 🧠 Phase 2: Outfit Recommendation
+
+- ✅ Combination logic
+- ✅ Weather-based suggestions
+- ✅ GPT-4o integration
+
+### 📦 Phase 3: Advanced Features
+
+- ⏳ Image recognition auto-tagging
+- 📆 Monthly reports
+- 🌱 Sustainability metrics
+- 🌍 Social outfit sharing
+
+### 🚀 Phase 4: Deployment & Optimization
+
+- 🔧 Production DB & Docker
+- 🔐 Secured environment configs
+- 🚄 Performance improvements
+
+---
+
+## 📊 Admin Features
+
+- View and manage users
+- Track usage stats
+- Visual analytics with Chart.js
+
+---
+
+## 🎨 UI Overview
+
+- Gradient login/register UI
+- Responsive Bootstrap layout
+- Real-time weather widget
+- Upload forms & filters
+
+---
+
+## 📝 License
+
+MIT License — see LICENSE file.
+
+---
+
+**Author**: Tansel Seray Aydinli  
+**Year**: 2025  
+**PETI** — Making wardrobe management smart and sustainable! 👗🧥👞 
